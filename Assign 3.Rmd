@@ -1,0 +1,57 @@
+---
+title: "Assignment 3"
+author: "Jill Hunt"
+date: '2018-03-14'
+output: html_document
+---
+
+## Creating dataset of 2 types of roads (Smooth and Bumpy), with 20 roads of each type sampled
+
+```{r}
+
+n.groups <- 2
+n.sample <- 20
+n <- n.groups * n.sample
+
+x <- rep(1:n.groups, rep(n.sample, n.groups))
+road.type <- factor(x, labels = c("Smooth", "Bumpy"))
+acci <- runif(n, 1, 30) #There are no less than 1 and no more than 30 accidents per road sampled
+accid <- acci - mean(acci)
+
+```
+
+## Designing a matrix for the interaction between road type and accidents
+15 = expected accidents on smooth road
+5 = difference between expected accidents on smooth road and bumpy road
+3 = slope 
+1 = difference in slope between bumpy and smooth
+```{r}
+
+Xmat <- model.matrix(~road.type*accid)
+beta.vec <- c(15, 5, 3, 1)
+
+```
+
+## Assemble into a poisson model
+```{r}
+
+lin.pred <- Xmat[,] %*% beta.vec
+lambda <- exp(lin.pred)
+C <- rpois(n = n, lambda = lambda)
+
+```
+
+Now assess the model
+```{r}
+
+mod1 <- glm(C ~ road.type * accid, poisson)
+summary(mod1)
+
+```
+```{r}
+
+par(mfrow = c(2, 2))
+plot(mod1)
+
+```
+
